@@ -1,7 +1,4 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-
   function hex_to_base64($hex) { // http://cryptopals.com/sets/1/challenges/2/
     $hex = str_split(strtolower($hex));
 
@@ -93,5 +90,67 @@ ini_set('display_errors', '1');
     return $char_map[$int];
   }
 
-  var_dump(hex_to_base64('49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'));
-  var_dump(fixed_xor('1c0111001f010100061a024b53535009181c', '686974207468652062756c6c277320657965'));
+  /**
+   * XOR against a single byte character
+   * the 'single character' is an 8-bit character (not hex, not base64)
+   * the result is encoded in ascii (not base64)
+   */
+  function single_byte_cipher($hex_input, $index) {
+    // create an array of 2-digit words to XOR against
+    $hex = str_split($hex_input, 2);
+
+    // convert to an array of integers
+    $int = array();
+    foreach ($hex as $value) {
+      $int[] = hex_to_int($value[0]) * 16 + hex_to_int($value[1]);
+    }
+
+    // perform XOR
+    $phrase = '';
+    foreach ($int as $value) {
+      $phrase .= chr($value ^ $index);
+    }
+
+    // generate score based on letter frequency
+    $letter_freq_map = array_reverse(str_split('etaoinsrhdlucmfywgpbvkxqjz'));
+    
+    $letters = str_split(strtolower($phrase));
+    $score = 0;
+    foreach ($letters as $value) {
+      foreach ($letter_freq_map as $k => $v) {
+        if ($value == $v) {
+          $score += $k;
+          break;
+        }
+      }
+    }
+
+    return array(
+      'hex_input' => $hex_input,
+      'char' => chr($index),
+      'score' => $score,
+      'phrase' => $phrase,
+    );
+  }
+
+  function get_best_guess($hex_string, $limit = 0) {
+    $candidates = array();
+    for ($i = 0; $i < 256; $i++) {
+      $candidates[] = single_byte_cipher($hex_string, $i, $j);
+    }
+    usort($candidates, 'highest_score_first');
+    return ($limit > 0) ? array_slice($candidates, 0, $limit) : $candidates;
+  }
+
+  function highest_score_first($a, $b) {
+    if ($a['score'] == $b['score']) {
+        return 0;
+    }
+    return ($a['score'] > $b['score']) ? -1 : 1;
+  }
+
+  var_dump(array(
+    's1c1' => hex_to_base64('49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'),
+    's1c2' => fixed_xor('1c0111001f010100061a024b53535009181c', '686974207468652062756c6c277320657965'),
+    's1c3' => get_best_guess('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736', 2),
+  ));
