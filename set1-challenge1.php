@@ -25,7 +25,7 @@
         } else {
           $binary_str .= '0';
         }
-        $divisor = $divisor / 2;
+        $divisor /= 2;
       }
     }
     
@@ -37,14 +37,24 @@
     // split string into array of 6-digit words, loop
     $six_words = str_split($binary_str, 6);
 
-    // convert word into a base64 character
+    // convert word into a base64 character (http://www.garykessler.net/library/base64.html)
+    $char_map = str_split('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/');
+    $base64 = '';
     foreach ($six_words as $value) {
-
+      $digits = str_split($value);
+      $multiplier = 1;
+      $index = 0;
+      while (count($digits)) {
+        $this_digit = array_pop($digits);
+        if ($this_digit == '1') { $index += $multiplier; }
+        $multiplier *= 2;
+      }
+      $base64 .= $char_map[$index];
     }
 
     // join to form string of base64 characters, return
 
-    return $hex;
+    return $base64;
   }
 
   print hex_to_base64('49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d');
