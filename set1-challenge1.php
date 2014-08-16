@@ -1,6 +1,6 @@
 <?php
 
-  function hex_to_base64($hex) {
+  function hex_to_base64($hex) { // http://cryptopals.com/sets/1/challenges/1/
     $hex = str_split(strtolower($hex));
 
     // loop through characters to create an array of 4-digit binary words
@@ -57,4 +57,5 @@
     return $base64;
   }
 
+  // returns 'SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t' as expected!
   print hex_to_base64('49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d');
